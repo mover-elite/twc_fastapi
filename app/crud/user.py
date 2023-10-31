@@ -9,7 +9,6 @@ from app.schemas.user import (
     UserBank,
     UserWallet,
     PaymentDetail,
-    PaymentDetailIn,
 )
 from app.models.user import User, Payment_Details
 from app.core.security import hash_password
@@ -88,7 +87,9 @@ def update_bank_details(
     detail: UserBank | UserWallet,
     db: Session,
 ) -> PaymentDetail | None:
-    query = db.query(Payment_Details).filter(Payment_Details.owner_id == user_id)
+    query = db.query(Payment_Details).filter(
+        Payment_Details.owner_id == user_id,
+    )
     query.update(detail.dict())
     payment = query.first()
     if not payment:
@@ -96,3 +97,9 @@ def update_bank_details(
     db.commit()
     db.refresh(payment)
     return PaymentDetail.from_orm(payment)
+
+
+def update_user(user_id: int, details: dict, db: Session) -> bool:
+    db.query(User).filter(User.id == user_id).update(details)
+    db.commit()
+    return True

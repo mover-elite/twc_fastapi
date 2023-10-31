@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.user import CreateUser, UserResponse
-from app.api.dependencies import get_db
-from app.crud.user import create_user, get_user_by_email
+from app.schemas.user import CreateUser, UserResponse, User
+from app.api.dependencies import get_db, get_current_user
+from app.crud.user import get_user_by_email
 from app.core.security import verify_password, Jwt
+from app.core.user import create_user, verify_email, send_verification_code
 
 router = APIRouter(prefix="/auth", tags=["AUTH"])
 
@@ -35,3 +36,19 @@ def login_user(
 
     token = Jwt.get_access_token(user.email)
     return {"access_token": token}
+
+
+@router.post("/confirm-email")
+def comfirm_email(
+    otp: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    verify_email(current_user.id, otp, db)
+    return True
+
+
+@router.get("/confirm-email")
+def confirm_user_email(current_user: User = Depends(get_current_user)):
+    send_verification_code(current_user.email, current_user.id)
+    return True

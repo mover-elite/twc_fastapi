@@ -20,8 +20,11 @@ def home():
     return datetime.now()
 
 
-@app.get("/ping")
+@app.get(
+    "/ping",
+)
 def ping():
+    """Ping the server"""
     return "pong"
 
 

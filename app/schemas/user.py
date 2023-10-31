@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr
 from typing import List
 from datetime import datetime
-from typing import List
 from app.schemas.plan import UserPlan
 
 pwd_pattern = r"[A-Za-z0-9]*[A-Z]+[A-Za-z0-9]*[a-z]+[A-Za-z0-9]*\d+[A-Za-z0-9]*[^A-Za-z0-9]+[A-Za-z0-9]*"  # noqa
@@ -53,10 +52,20 @@ class BaseUser(BaseModel):
 
 
 class CreateUser(BaseUser):
-    password: str = Field(
-        min_length=8,
-        pattern=pwd_pattern,
-    )
+    password: str = Field(min_length=8, pattern=pwd_pattern)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "first_name": "John",
+                "last_name": "Doe",
+                "phone_number": "+1234567890",
+                "email": "johndoe@example.com",
+                "address": "123 Main St, Anytown USA",
+                "upline_ref_code": "ABCD1234",
+                "password": "password123",
+            }
+        }
 
 
 class UserResponse(BaseUser):
@@ -74,10 +83,7 @@ class UserResponse(BaseUser):
 
 
 class User(UserResponse):
-    password: str = Field(
-        min_length=8,
-        pattern=pwd_pattern,
-    )
+    password: str
 
     payment_detail: PaymentDetail | None = None
 

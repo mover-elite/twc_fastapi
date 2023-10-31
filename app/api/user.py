@@ -19,7 +19,11 @@ from app.core.paystack import verify_bank
 router = APIRouter(tags=["User"])
 
 
-@router.get("/dashboard")
+@router.get(
+    "/dashboard",
+    response_model=UserResponse,
+    summary="Get user information",
+)
 def user_dashboard(
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -30,15 +34,25 @@ def user_dashboard(
     return user
 
 
-@router.get("/payment")
+@router.get(
+    "/payment",
+    response_model=PaymentDetail,
+    summary="Get user payment information",
+)
 def get_payment_details(
     current_user: UserSchema = Depends(get_current_user),
 ) -> PaymentDetail | None:
     return current_user.payment_detail
 
 
-@router.post("/payment")
-def add_bank_payment_details(
+@router.post(
+    "/payment",
+    response_model=PaymentDetail,
+    summary="Add payment detail for a user",
+    description="Route to add a payment detail for user if \
+        user doesn't have payment details set up already",
+)
+def add_payment_details(
     payment_details: PaymentDetailIn,
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -56,13 +70,21 @@ def add_bank_payment_details(
 
     wallet = payment_details.wallet.dict() if payment_details.wallet else {}
     details = {**bank, **wallet}
+
     if not details:
         raise HTTPException(400, "Incomplete payment details")
     new_det = add_bank_details(current_user.id, details, db)
     return new_det
 
 
-@router.put("/payment")
+@router.put(
+    "/payment",
+    response_model=PaymentDetail,
+    summary="Update user payment details",
+    description="""This router update user existing payment details
+        Use to update both bank and wallet information.
+        """,
+)
 def update_payment(
     new_details: UserBank | UserWallet,
     current_user: UserSchema = Depends(get_current_user),
