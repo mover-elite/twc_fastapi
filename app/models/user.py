@@ -60,3 +60,20 @@ class Payment_Details(Base):  # type: ignore
     #     passive_deletes=True,
     #     uselist=False,
     # )
+class TWCPosts(Base):  # type: ignore
+    id = Column(Integer, primary_key=True)
+    title = Column(String(300), nullable=False)
+    category = Column(String(150), nullable=False)
+    content = Column(String, nullable=False)
+    thumbnail = Column(String(255), nullable=False, unique=True)
+    tags = Column(String(255), nullable=False)
+    date_created = Column(DateTime(timezone=True), default=func.now())
+
+class Notification(Base):
+    id = Column(Integer, primary_key=True)
+    content = Column(String(300), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    read = Column(Boolean, default=False)
+    ower = relationship("Users", backref="notifications", passive_deletes=True)

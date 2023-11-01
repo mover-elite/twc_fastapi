@@ -28,6 +28,13 @@ def get_user_by_email(email: str, db: Session) -> UserSchema | None:
         return UserSchema.from_orm(user)
     return None
 
+def check_user_by_phone(phone)-> UserSchema | None:
+    user = UserSchema.query(User).filter_by(phone_number=phone).first()
+    return True if user else False
+
+def get_user_by_ref_code(ref_code)-> UserSchema | None:
+    return UserSchema.query(User).filter_by(user_ref_code=ref_code).first()
+
 
 def check_user_exists(
     phone_number: str,

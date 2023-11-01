@@ -41,3 +41,25 @@ def get_all_plans(db: Session = Depends(get_db)):
 @router.get("/plan")
 def get_plan(plan_id: int, db: Session = Depends(get_db)) -> PlanSchema | None:
     return get_plan_func(plan_id, db)
+
+
+
+from crud.user import (
+    check_user_exists,
+    get_user_by_ref_code,
+    check_user_by_phone,
+)
+
+
+@views.route("/check_user")
+def get_user():
+    email, ref_code, phone = [x.strip() for x in request.args.values()]
+    user_exist = check_user_exists(email)
+    user_exist_phone = check_user_by_phone(phone)
+    correct_code = True if (not ref_code or get_user_by_ref_code(ref_code)) else False
+    data = {
+        "user_exist": user_exist,
+        "phone_exist": user_exist_phone,
+        "correct_code": correct_code,
+    }
+    return data
