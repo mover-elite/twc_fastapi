@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.api.main import router
 from app.schemas.error import ValidationError
 from datetime import datetime
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI(
@@ -12,6 +13,14 @@ app = FastAPI(
             "model": ValidationError,
         }
     },
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

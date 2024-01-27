@@ -19,20 +19,21 @@ router = APIRouter(tags=["Views"])
     summary="Scrap news from cryptonews.com",
 )
 def get_crypto_new(request: Request):
-    print(request.headers)
-
     headers = {"User-Agent": request.headers.get("user-agent", "Mozilla")}
     res = requests.get("https://cryptonews.net/", headers=headers)
     html = Soup(res.content, "html.parser")
     articles_raw = html.find_all("div", class_="news-item")
-    articles = [
-        Article(
-            title=ne.attrs["data-title"],
-            image_link=ne.attrs["data-image"],
-            link=ne.attrs["data-link"],
-        )
-        for ne in articles_raw[:3]
-    ]
+    articles = []
+    for ne in articles_raw:
+        try:
+            article = Article(
+                title=ne.attrs["data-title"],
+                image_link=ne.attrs["data-image"],
+                link=ne.attrs["data-link"],
+            )
+            articles.append(article)
+        except Exception:
+            pass
     return articles
 
 

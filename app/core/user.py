@@ -38,6 +38,7 @@ def verify_email(user_id: int, otp: str, db: Session) -> bool:
 
 def send_verification_code(email: EmailStr, user_id: int):
     otp = get_code()
+    print(otp)
     send_verification_message(email, otp)
     value = json.dumps({"user": user_id, "for": "email_verification"})
     redis_cache.set(otp, value)

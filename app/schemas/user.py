@@ -53,6 +53,7 @@ class BaseUser(BaseModel):
 
 class CreateUser(BaseUser):
     password: str = Field(min_length=8, pattern=pwd_pattern)
+    address: str | None = ""
 
     class Config:
         json_schema_extra = {
@@ -80,6 +81,11 @@ class UserResponse(BaseUser):
 
     class Config:
         from_attributes = True
+
+
+class CreateUserResponse(BaseModel):
+    user: UserResponse
+    access_token: str
 
 
 class User(UserResponse):

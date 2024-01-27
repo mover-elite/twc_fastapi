@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
-from app.schemas.user import CreateUser, UserResponse, User
+from app.schemas.user import CreateUser, User, CreateUserResponse
+from app.schemas.auth import OTP
 from app.api.dependencies import get_db, get_current_user
 from app.crud.user import get_user_by_email
 from app.core.security import verify_password, Jwt
@@ -11,13 +12,18 @@ from app.core.user import create_user, verify_email, send_verification_code
 router = APIRouter(prefix="/auth", tags=["AUTH"])
 
 
-@router.post("/sign-up", response_model=UserResponse)
+@router.post("/sign-up", response_model=CreateUserResponse)
 def create_new_user(
     userIn: CreateUser,
     db: Session = Depends(get_db),
 ):
     new_user = create_user(userIn, db)
-    return new_user
+    token = Jwt.get_access_token(new_user.email)
+    resppnse = CreateUserResponse(
+        user=new_user,
+        access_token=token,
+    )
+    return resppnse
 
 
 @router.post("/login")
@@ -40,11 +46,11 @@ def login_user(
 
 @router.post("/confirm-email")
 def comfirm_email(
-    otp: str,
+    otp: OTP,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    verify_email(current_user.id, otp, db)
+    verify_email(current_user.id, otp.otp, db)
     return True
 
 
