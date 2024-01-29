@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from app.schemas.plan import UserPlan
 
@@ -11,16 +11,6 @@ class UserLogin(BaseModel):
     password: str
 
 
-class UserBank(BaseModel):
-    bank_name: str
-    bank_id: str
-    bank_account: str
-    account_name: str
-
-    class Config:
-        from_attributes = True
-
-
 class UserWallet(BaseModel):
     network: str
     wallet_address: str
@@ -30,12 +20,11 @@ class UserWallet(BaseModel):
         from_attributes = True
 
 
-class PaymentDetailIn(BaseModel):
-    bank: UserBank | None = None
-    wallet: UserWallet | None = None
+# class PaymentDetailIn(BaseModel):
+#     wallet: UserWallet
 
 
-class PaymentDetail(UserWallet, UserBank):
+class PaymentDetail(UserWallet):
     id: int
 
     class Config:
@@ -52,7 +41,10 @@ class BaseUser(BaseModel):
 
 
 class CreateUser(BaseUser):
-    password: str = Field(min_length=8, pattern=pwd_pattern)
+    password: str = Field(
+        min_length=8,
+        pattern=pwd_pattern,
+    )
     address: str | None = ""
 
     class Config:
@@ -95,3 +87,10 @@ class User(UserResponse):
 
     class Config:
         from_attributes = True
+
+
+class UpdateUser(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone_number: Optional[str] = None
+    address: Optional[str] = None

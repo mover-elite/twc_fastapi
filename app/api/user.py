@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 from app.api.dependencies import get_db
@@ -6,15 +7,15 @@ from app.api.dependencies import get_current_user
 from app.schemas.user import (
     UserResponse,
     User as UserSchema,
-    UserBank,
     PaymentDetail,
     UserWallet,
-    PaymentDetailIn,
+    UpdateUser,
 )
 
-from app.crud.user import add_bank_details, update_bank_details
+from app.crud.user import add_bank_details, update_bank_details, update_user
 from app.crud.plans import get_user_plans
-from app.core.paystack import verify_bank
+from app.core.user import request_password_change, verify_password_change_otp
+from app.core.security import hash_password
 
 router = APIRouter(tags=["User"])
 
@@ -41,8 +42,9 @@ def user_dashboard(
 )
 def get_payment_details(
     current_user: UserSchema = Depends(get_current_user),
-) -> PaymentDetail | None:
-    return current_user.payment_detail
+) -> PaymentDetail | PlainTextResponse:
+    payment_detail = current_user.payment_detail
+    return payment_detail if payment_detail else PlainTextResponse("Not set")
 
 
 @router.post(
@@ -53,7 +55,7 @@ def get_payment_details(
         user doesn't have payment details set up already",
 )
 def add_payment_details(
-    payment_details: PaymentDetailIn,
+    wallet: UserWallet,
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PaymentDetail:
@@ -62,18 +64,7 @@ def add_payment_details(
             400,
             "Payment Detail already exists, use PUT to update existing detail",
         )
-    bank = payment_details.bank.dict() if payment_details.bank else {}
-    if payment_details.bank:
-        valid_bank = verify_bank(payment_details.bank)
-        if not valid_bank:
-            raise HTTPException(400, "Invalid bank details")
-
-    wallet = payment_details.wallet.dict() if payment_details.wallet else {}
-    details = {**bank, **wallet}
-
-    if not details:
-        raise HTTPException(400, "Incomplete payment details")
-    new_det = add_bank_details(current_user.id, details, db)
+    new_det = add_bank_details(current_user.id, wallet.model_dump(), db)
     return new_det
 
 
@@ -86,9 +77,55 @@ def add_payment_details(
         """,
 )
 def update_payment(
-    new_details: UserBank | UserWallet,
+    new_details: UserWallet,
+    current_user: UserSchema = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> PaymentDetail | None:
+    if not current_user.payment_detail:
+        raise HTTPException(400, "Payment Detail not set yet")
+    updated = update_bank_details(current_user.id, new_details, db)
+    return updated
+
+
+@router.get("/update_password")
+def update_password(
+    current_user: UserSchema = Depends(get_current_user),
+):
+    request_password_change(
+        current_user.email,
+        current_user.first_name,
+        current_user.id,
+    )
+    return True
+
+
+@router.put("/update_password")
+def update_password_put(
+    otp: str,
+    new_password: str,
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    updated = update_bank_details(current_user.id, new_details, db)
-    return updated
+    verify_password_change_otp(otp, current_user.id)
+    hashed_pasword = hash_password(new_password)
+    details = {"password": hashed_pasword}
+    update_user(current_user.id, details, db)
+    return True
+
+
+@router.put("/user")
+def update_user_info(
+    detail: UpdateUser,
+    current_user: UserSchema = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    details = detail.model_dump()
+    parsed = {k: v for k, v in details.items() if v}
+    if not parsed:
+        raise HTTPException(
+            400,
+            "No detail provided, at least one field is required",
+        )
+
+    update_user(current_user.id, parsed, db)
+    return True

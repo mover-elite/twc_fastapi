@@ -49,3 +49,10 @@ def send_otp_through_smtp(to: EmailStr, message: str) -> None:
     with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
         server.login(username, app_password)
         server.sendmail(username, to, message)
+
+
+def send_password_change_mail(email_address: EmailStr, otp: str, name: str):
+    html = parse_otp_mail(otp, name, "Change Password")
+    email_string = parse_message(html, email_address, "Change Password")
+    send_otp_through_smtp(email_address, email_string)
+    return True

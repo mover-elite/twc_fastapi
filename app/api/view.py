@@ -1,14 +1,8 @@
 import requests
 from bs4 import BeautifulSoup as Soup
-from fastapi import Depends
-from sqlalchemy.orm import Session
 from fastapi import APIRouter, Request
 from app.schemas.view import Article
-from app.api.dependencies import get_db
-from app.crud.plans import get_plans, get_plan as get_plan_func
 from typing import List
-
-from app.schemas.plan import Plan as PlanSchema
 
 router = APIRouter(tags=["Views"])
 
@@ -37,20 +31,23 @@ def get_crypto_new(request: Request):
     return articles
 
 
-@router.get(
-    "/plans",
-    response_model=List[PlanSchema],
-    summary="Rertieve all available plans",
-)
-def get_all_plans(db: Session = Depends(get_db)):
-    plans = get_plans(db)
-    return plans
+# @router.get(
+#     "/plans",
+#     response_model=List[PlanSchema],
+#     summary="Rertieve all available plans",
+# )
+# def get_all_plans(db: Session = Depends(get_db)):
+#     plans = get_plans(db)
+#     return plans
 
 
-@router.get(
-    "/plan",
-    response_model=PlanSchema,
-    summary="Get a plan by it's id",
-)
-def get_plan(plan_id: int, db: Session = Depends(get_db)) -> PlanSchema | None:
-    return get_plan_func(plan_id, db)
+# @router.get(
+#     "/plan",
+#     response_model=PlanSchema,
+#     summary="Get a plan by it's id",
+# )
+# def get_plan(
+#     plan_id: int,
+#     db: Session = Depends(get_db),
+# ) -> PlanSchema | None:
+#     return get_plan_func(plan_id, db)

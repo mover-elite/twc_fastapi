@@ -6,7 +6,6 @@ from app.schemas.user import (
     CreateUser,
     UserResponse,
     User as UserSchema,
-    UserBank,
     UserWallet,
     PaymentDetail,
 )
@@ -63,7 +62,7 @@ def create_user(
         raise HTTPException(400, msg)
 
     new_user.password = hash_password(new_user.password)
-    user = User(**new_user.dict(), user_ref_code=gen_ref_link())
+    user = User(**new_user.model_dump(), user_ref_code=gen_ref_link())
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -84,13 +83,14 @@ def add_bank_details(
 
 def update_bank_details(
     user_id: int,
-    detail: UserBank | UserWallet,
+    detail: UserWallet,
     db: Session,
 ) -> PaymentDetail | None:
     query = db.query(Payment_Details).filter(
         Payment_Details.owner_id == user_id,
     )
-    query.update(detail.dict())
+    query.update(detail.model_dump())
+
     payment = query.first()
     if not payment:
         return None

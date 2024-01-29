@@ -47,10 +47,10 @@ class Payment_Details(Base):  # type: ignore
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     # Bank Details
-    bank_name = Column(String(150))
-    bank_id = Column(String(20))
-    bank_account = Column(String(20))
-    account_name = Column(String(150))
+    # bank_name = Column(String(150))
+    # bank_id = Column(String(20))
+    # bank_account = Column(String(20))
+    # account_name = Column(String(150))
     # Wallet Address Details
     network = Column(String(150))
     wallet_address = Column(String(150))

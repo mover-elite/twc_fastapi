@@ -1,43 +1,38 @@
 from datetime import datetime
 
 from sqlalchemy.orm import Session
-from app.models.plan import Plan, Plans
-from app.schemas.plan import Plan as PlanSchema, UserPlan
-from app.core.exceptions import BadRequest
+from app.models.plan import Plans
+from app.schemas.plan import UserPlan
 from typing import List
-from shortuuid import uuid
 
 
-def get_plans(db: Session) -> List[PlanSchema]:
-    plans_orm = db.query(Plan).all()
-    plans = [PlanSchema.from_orm(plan) for plan in plans_orm]
-    return plans
+# def get_plans(db: Session) -> List[PlanSchema]:
+#     plans_orm = db.query(Plan).all()
+#     plans = [PlanSchema.from_orm(plan) for plan in plans_orm]
+#     return plans
 
 
-def get_plan(plan_id: int, db: Session) -> PlanSchema | None:
-    plan_orm = db.query(Plan).filter_by(id=plan_id).first()
-    if not plan_orm:
-        return None
-    return PlanSchema.from_orm(plan_orm)
+# def get_plan(plan_id: int, db: Session) -> PlanSchema | None:
+#     plan_orm = db.query(Plan).filter_by(id=plan_id).first()
+#     if not plan_orm:
+#         return None
+#     return PlanSchema.from_orm(plan_orm)
 
 
 def create_new_plan(
-    type_id: int,
+    amount: float,
     duration: int,
     owner_id: int,
     db: Session,
+    trx_id: str,
 ):
-    plan_type = get_plan(type_id, db)
-    if not plan_type:
-        raise BadRequest("Invalid plan id")
-
     curuent_date = datetime.utcnow()
     active = curuent_date.date == 1 or curuent_date.date == 2
 
     new_plan = Plans(
-        plan_type_id=type_id,
+        amount=amount,
         duration=duration,
-        trxId=uuid(),
+        trx_id=trx_id,
         owner_id=owner_id,  # type: ignore
         state="active" if active else "pending",
     )
