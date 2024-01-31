@@ -23,19 +23,21 @@ def create_new_plan(
     amount: float,
     duration: int,
     owner_id: int,
-    db: Session,
     trx_id: str,
+    db: Session,
 ):
     curuent_date = datetime.utcnow()
-    active = curuent_date.date == 1 or curuent_date.date == 2
+    active = curuent_date.date in range(1, 6)
 
     new_plan = Plans(
         amount=amount,
         duration=duration,
         trx_id=trx_id,
         owner_id=owner_id,  # type: ignore
-        state="active" if active else "pending",
+        status="active" if active else "pending",
     )
+    if active:
+        new_plan.start_date = curuent_date
 
     db.add(new_plan)
     db.commit()

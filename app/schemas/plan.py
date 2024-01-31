@@ -26,10 +26,28 @@ class UserPlan(BaseModel):
     date_created: datetime
     start_date: datetime | None = None
     date_completed: datetime | None = None
-    state: str
-    trxId: str
+    status: str
+    trx_id: str
     owner_id: int
-    plan_type: Plan
 
     class Config:
         from_attributes = True
+
+
+class PlanPayment(BaseModel):
+    payment_id: str
+    user_id: int
+    amount: int
+    to_address: str
+    duration: int
+    network: str = "Binance Smart Chain"
+    asset: str = "USDT"
+
+
+class PaymentStatus(PlanPayment):
+    status: str
+    payed: float
+
+
+class PaymentIn(BaseModel):
+    id: str

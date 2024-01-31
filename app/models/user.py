@@ -46,17 +46,6 @@ class Payment_Details(Base):  # type: ignore
     owner_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    # Bank Details
-    # bank_name = Column(String(150))
-    # bank_id = Column(String(20))
-    # bank_account = Column(String(20))
-    # account_name = Column(String(150))
-    # Wallet Address Details
-    network = Column(String(150))
+    network = Column(String(150), default="Binance Smart Chain")
     wallet_address = Column(String(150))
-    coin = Column(String(150))
-    # owner = relationship(
-    #     "User",
-    #     passive_deletes=True,
-    #     uselist=False,
-    # )
+    coin = Column(String(150), default="USDT")

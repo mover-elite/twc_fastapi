@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from pydantic import BaseModel, Field, EmailStr, validator
+from typing import List
 from datetime import datetime
 from app.schemas.plan import UserPlan
+from eth_utils import address as eth_address
+
 
 pwd_pattern = r"[A-Za-z0-9]*[A-Z]+[A-Za-z0-9]*[a-z]+[A-Za-z0-9]*\d+[A-Za-z0-9]*[^A-Za-z0-9]+[A-Za-z0-9]*"  # noqa
 
@@ -9,6 +11,20 @@ pwd_pattern = r"[A-Za-z0-9]*[A-Z]+[A-Za-z0-9]*[a-z]+[A-Za-z0-9]*\d+[A-Za-z0-9]*[
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+class Wallet(BaseModel):
+    wallet_address: str = Field(
+        examples=["0xC1614F74733409B77c8dBbF512D2627823CC2c81"],
+    )
+
+    @validator("wallet_address")
+    def validate_address(cls, value):
+        try:
+            checksumed = eth_address.to_checksum_address(value)
+            return checksumed
+        except Exception:
+            raise ValueError("Invalid Wallet Address")
 
 
 class UserWallet(BaseModel):
@@ -90,7 +106,41 @@ class User(UserResponse):
 
 
 class UpdateUser(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone_number: Optional[str] = None
-    address: Optional[str] = None
+    first_name: str | None = Field(
+        default=None,
+        min_length=2,
+        examples=["John"],
+    )
+
+    last_name: str | None = Field(
+        default=None,
+        min_length=2,
+        examples=["Doe"],
+    )
+
+    phone_number: str | None = Field(
+        default=None,
+        min_length=2,
+        examples=["+1234567890"],
+    )
+    address: str | None = Field(
+        default=None,
+        min_length=2,
+        examples=["123 Main St, Anytown USA"],
+    )
+
+
+class ChangePassword(BaseModel):
+    otp: str
+    new_password: str = Field(
+        min_length=8,
+        pattern=pwd_pattern,
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "otp": "123456",
+                "new_password": "pAssword1@23",
+            }
+        }

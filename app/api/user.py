@@ -8,8 +8,10 @@ from app.schemas.user import (
     UserResponse,
     User as UserSchema,
     PaymentDetail,
-    UserWallet,
     UpdateUser,
+    Wallet,
+    UserWallet,
+    ChangePassword,
 )
 
 from app.crud.user import add_bank_details, update_bank_details, update_user
@@ -37,7 +39,7 @@ def user_dashboard(
 
 @router.get(
     "/payment",
-    response_model=PaymentDetail,
+    response_model=UserWallet,
     summary="Get user payment information",
 )
 def get_payment_details(
@@ -49,13 +51,13 @@ def get_payment_details(
 
 @router.post(
     "/payment",
-    response_model=PaymentDetail,
+    response_model=UserWallet,
     summary="Add payment detail for a user",
     description="Route to add a payment detail for user if \
         user doesn't have payment details set up already",
 )
 def add_payment_details(
-    wallet: UserWallet,
+    wallet: Wallet,
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PaymentDetail:
@@ -70,20 +72,24 @@ def add_payment_details(
 
 @router.put(
     "/payment",
-    response_model=PaymentDetail,
+    response_model=UserWallet,
     summary="Update user payment details",
     description="""This router update user existing payment details
         Use to update both bank and wallet information.
         """,
 )
 def update_payment(
-    new_details: UserWallet,
+    new_details: Wallet,
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PaymentDetail | None:
     if not current_user.payment_detail:
         raise HTTPException(400, "Payment Detail not set yet")
-    updated = update_bank_details(current_user.id, new_details, db)
+    updated = update_bank_details(
+        current_user.id,
+        new_details.model_dump(),
+        db,
+    )
     return updated
 
 
@@ -101,13 +107,12 @@ def update_password(
 
 @router.put("/update_password")
 def update_password_put(
-    otp: str,
-    new_password: str,
+    creds: ChangePassword,
     current_user: UserSchema = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    verify_password_change_otp(otp, current_user.id)
-    hashed_pasword = hash_password(new_password)
+    verify_password_change_otp(creds.otp, current_user.id)
+    hashed_pasword = hash_password(creds.new_password)
     details = {"password": hashed_pasword}
     update_user(current_user.id, details, db)
     return True

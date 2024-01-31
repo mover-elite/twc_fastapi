@@ -3,7 +3,7 @@ from app.api.main import router
 from app.schemas.error import ValidationError
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.core.cache import redis_cache
 
 app = FastAPI(
     title="TRADEWITHCHUN BACKEND",
@@ -15,6 +15,7 @@ app = FastAPI(
     },
 )
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,6 +23,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def start_up():
+    redis_cache.ping()
 
 
 @app.get("/")

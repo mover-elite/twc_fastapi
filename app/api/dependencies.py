@@ -8,7 +8,6 @@ from fastapi.exceptions import HTTPException
 from typing import Annotated
 from sqlalchemy.orm import Session
 from app.database.session import SessionLocal
-from jose import JWTError
 from app.schemas.auth import RefreshToken
 from app.schemas.user import User as UserSchema
 from app.core.security import Jwt
@@ -59,14 +58,13 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    try:
-        payload = Jwt.decode_access_token(token)
 
-        email: str | None = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except JWTError:
+    payload = Jwt.decode_access_token(token)
+
+    email: str | None = payload.get("sub")
+    if email is None:
         raise credentials_exception
+
     current_user = get_user_by_email(email, db)
     if current_user is None:
         raise credentials_exception

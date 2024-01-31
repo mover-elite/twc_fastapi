@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from jose import JWTError, jwt  # type: ignore
+from jose import JWTError, ExpiredSignatureError, jwt  # type: ignore
 from passlib.context import CryptContext  # type: ignore
 from app.core.config import settings
 from app.core.exceptions import Unauthenticated
@@ -24,9 +24,12 @@ class Jwt:
                 algorithms=[settings.JWT_ALGORITHM],
             )
             if is_access != payload["access"]:
-                raise Unauthenticated("Could not validate credentials")
+                raise Unauthenticated("Invalid Credentials")
 
             return payload
+
+        except ExpiredSignatureError:
+            raise Unauthenticated("Session Expired")
         except JWTError:
             raise Unauthenticated("Could not validate credentials")
 

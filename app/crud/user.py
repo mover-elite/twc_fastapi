@@ -6,7 +6,6 @@ from app.schemas.user import (
     CreateUser,
     UserResponse,
     User as UserSchema,
-    UserWallet,
     PaymentDetail,
 )
 from app.models.user import User, Payment_Details
@@ -83,13 +82,13 @@ def add_bank_details(
 
 def update_bank_details(
     user_id: int,
-    detail: UserWallet,
+    detail: dict,
     db: Session,
 ) -> PaymentDetail | None:
     query = db.query(Payment_Details).filter(
         Payment_Details.owner_id == user_id,
     )
-    query.update(detail.model_dump())
+    query.update(detail)
 
     payment = query.first()
     if not payment:
