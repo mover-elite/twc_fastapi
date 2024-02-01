@@ -45,7 +45,7 @@ def check_payment_status(
     details = json.loads(str(data))
     to_address = details["to_address"]
     amount = details["amount"]
-    balance = check_usdt_balance(to_address)
+    balance = check_usdt_balance(to_address, amount * 10**18)
     payed = int(balance / 10**18)
 
     details["status"] = "completed" if payed >= amount else "pending"
@@ -66,7 +66,7 @@ def complete_payment(payment_id: str, db: Session):
 
     user_id = details["user_id"]
     to_address = details["to_address"]
-    balance = check_usdt_balance(to_address) / 10**18
+    balance = check_usdt_balance(to_address, amount * 10**18) / 10**18
 
     if balance < amount:
         raise BadRequest("Payment Not Completed")

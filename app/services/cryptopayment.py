@@ -8,6 +8,8 @@ import dotenv
 
 dotenv.load_dotenv()
 
+testing = True
+
 
 @dataclass
 class PaymentInfo:
@@ -54,15 +56,24 @@ usdtContract = provider.eth.contract(address=usdtAddress, abi=balanceOfAbi)
 def create_payment():
     payment_id = shortuuid.uuid()
     print("paymend id generated")
-    adddress = contract.functions.getAddress(payment_id).call()
-    return PaymentInfo(id=payment_id, address=adddress)
+    if testing:
+        address = Account.create().address
+    else:
+        address = contract.functions.getAddress(payment_id).call()
+    return PaymentInfo(id=payment_id, address=address)
 
 
-def check_usdt_balance(address: HexAddress):
-    return usdtContract.functions.balanceOf(address).call()
+def check_usdt_balance(address: HexAddress, balance: int = 100):
+    if testing:
+        return balance
+    else:
+        return usdtContract.functions.balanceOf(address).call()
 
 
 def complete_payment(id: str, amount: int):
+    if testing:
+        return True
+
     amount = amount * 10**18
 
     trx_data = contract.functions.completePayment(
