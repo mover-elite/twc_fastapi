@@ -1,5 +1,6 @@
 import os
 from web3 import Web3
+from web3.middleware import geth_poa_middleware
 from eth_typing import ChecksumAddress, HexAddress
 import shortuuid
 from dataclasses import dataclass
@@ -8,7 +9,7 @@ import dotenv
 
 dotenv.load_dotenv()
 
-testing = True
+testing = False
 
 
 @dataclass
@@ -33,18 +34,18 @@ private_key = os.getenv("OWNER_KEY")
 account = Account.from_key(private_key)
 
 provider = Web3(Web3.HTTPProvider("https://bsc-dataseed1.binance.org/"))
-
+provider.middleware_onion.inject(geth_poa_middleware, layer=0)
 cur_path = os.path.abspath(__file__)
 abi_path = file_path = os.path.join(os.path.dirname(cur_path), "abi.json")
 
 contractAddress = provider.to_checksum_address(
-    "0x057ef64e23666f000b34ae31332854acbd1c8544"
+    "0x64c5ad4fd804a66f9acfe4f525990d6637e1ba94"
 )
 usdtAddress = provider.to_checksum_address(
-    "0x261d8c5e9742e6f7f1076fa1f560894524e19cad",
+    "0x55d398326f99059fF775485246999027B3197955",
 )
 treasuryAddress = provider.to_checksum_address(account.address)
-
+print(account.address)
 with open(abi_path, "r") as f:
     abi = f.read()
 

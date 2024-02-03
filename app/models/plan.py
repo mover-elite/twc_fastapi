@@ -2,12 +2,17 @@ from sqlalchemy import Column, DateTime, String, Integer, ForeignKey, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.database.base_class import Base
+import shortuuid
+
+
+def gen_id():
+    return shortuuid.random(length=8)
 
 
 class Plans(Base):
     __tablename__ = "plans"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True, default=gen_id)
     amount = Column(Float, nullable=False)
     duration = Column(Integer, nullable=False)
 
@@ -27,7 +32,7 @@ class PayOut(Base):
     __tablename__ = "payouts"
 
     id = Column(Integer, primary_key=True)
-    plan_id = Column(Integer, ForeignKey("plans.id", ondelete="CASCADE"))
+    plan_id = Column(String, ForeignKey("plans.id", ondelete="CASCADE"))
     amount = Column(Float, nullable=False)
     date = Column(DateTime(timezone=True), default=func.now())
 

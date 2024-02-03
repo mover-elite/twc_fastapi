@@ -27,7 +27,7 @@ def create_new_plan(
     db: Session,
 ):
     curuent_date = datetime.utcnow()
-    active = curuent_date.date in range(1, 6)
+    active = curuent_date.day in range(1, 6)
 
     new_plan = Plans(
         amount=amount,

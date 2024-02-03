@@ -21,7 +21,8 @@ class PlanDet(BaseModel):
 
 
 class UserPlan(BaseModel):
-    id: int
+    id: str
+    amount: float
     duration: int
     date_created: datetime
     start_date: datetime | None = None
