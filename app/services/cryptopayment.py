@@ -1,6 +1,6 @@
 import os
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware.geth_poa import geth_poa_middleware
 from eth_typing import ChecksumAddress, HexAddress
 import shortuuid
 from dataclasses import dataclass
@@ -44,8 +44,10 @@ contractAddress = provider.to_checksum_address(
 usdtAddress = provider.to_checksum_address(
     "0x55d398326f99059fF775485246999027B3197955",
 )
-treasuryAddress = provider.to_checksum_address(account.address)
-print(account.address)
+treasuryAddress = provider.to_checksum_address(
+    "0x65deA9dbf212c5232E377a56E4D5273c0533F24b"
+)
+
 with open(abi_path, "r") as f:
     abi = f.read()
 
@@ -71,7 +73,7 @@ def check_usdt_balance(address: HexAddress, balance: int = 100):
         return usdtContract.functions.balanceOf(address).call()
 
 
-def complete_payment(id: str, amount: int):
+def complete_payment(id: str, amount: int, to=treasuryAddress):
     if testing:
         return True
 
@@ -81,7 +83,7 @@ def complete_payment(id: str, amount: int):
         id,
         amount,
         usdtAddress,
-        treasuryAddress,
+        to,
     )
 
     trx = trx_data.build_transaction(

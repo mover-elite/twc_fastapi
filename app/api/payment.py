@@ -1,10 +1,14 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from app.api.dependencies import get_current_user
 from app.core.plan import create_plan_payment, check_payment_status
-from app.core.plan import complete_payment as complete_payment_func
+from app.core.plan import (
+    complete_payment as complete_payment_func,
+    cancle_payment,
+)
 from app.schemas.plan import PlanPayment, PaymentStatus, PaymentIn
 from sqlalchemy.orm import Session
 from app.api.dependencies import get_db
+from eth_typing import ChecksumAddress
 
 router = APIRouter(prefix="/payment", tags=["Payment", "Plan"])
 
@@ -28,6 +32,18 @@ def check_payment_status_func(
 ) -> PaymentStatus:
     status = check_payment_status(payment_id)
     return status
+
+
+@router.post("/cancle")
+def cancel_payment(
+    id: str = Body(),
+    create_new: bool = Body(default=False),
+    to_address: ChecksumAddress | None = Body(default=None),
+    current_user=Depends(get_current_user),
+):
+    res = cancle_payment(id, current_user.id, to_address, create_new)
+    return res
+    pass
 
 
 @router.post("/complete")
