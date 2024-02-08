@@ -1,4 +1,5 @@
 import os
+import sys
 from web3 import Web3
 from web3.middleware.geth_poa import geth_poa_middleware
 from eth_typing import ChecksumAddress, HexAddress
@@ -31,7 +32,12 @@ balanceOfAbi = [
 ]
 
 private_key = os.getenv("OWNER_KEY")
+treasury_addr = os.getenv("TREASURY_WALLET")
 account = Account.from_key(private_key)
+
+if not treasury_addr:
+    print("Treasury Add not res")
+    sys.exit(1)
 
 provider = Web3(Web3.HTTPProvider("https://bsc-dataseed1.binance.org/"))
 provider.middleware_onion.inject(geth_poa_middleware, layer=0)
@@ -44,10 +50,9 @@ contractAddress = provider.to_checksum_address(
 usdtAddress = provider.to_checksum_address(
     "0x55d398326f99059fF775485246999027B3197955",
 )
-treasuryAddress = provider.to_checksum_address(
-    "0x65deA9dbf212c5232E377a56E4D5273c0533F24b"
-)
+treasuryAddress = provider.to_checksum_address(treasury_addr)
 
+print(f"treasury address is {treasuryAddress}")
 with open(abi_path, "r") as f:
     abi = f.read()
 

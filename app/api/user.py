@@ -3,7 +3,7 @@ from fastapi.responses import PlainTextResponse
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 from app.api.dependencies import get_db
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user, get_current_user_verified
 from app.schemas.user import (
     UserResponse,
     User as UserSchema,
@@ -58,7 +58,7 @@ def get_payment_details(
 )
 def add_payment_details(
     wallet: Wallet,
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: UserSchema = Depends(get_current_user_verified),
     db: Session = Depends(get_db),
 ) -> PaymentDetail:
     if current_user.payment_detail:
@@ -80,7 +80,7 @@ def add_payment_details(
 )
 def update_payment(
     new_details: Wallet,
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: UserSchema = Depends(get_current_user_verified),
     db: Session = Depends(get_db),
 ) -> PaymentDetail | None:
     if not current_user.payment_detail:
@@ -95,7 +95,7 @@ def update_payment(
 
 @router.get("/update_password")
 def update_password(
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: UserSchema = Depends(get_current_user_verified),
 ):
     request_password_change(
         current_user.email,
@@ -108,7 +108,7 @@ def update_password(
 @router.put("/update_password")
 def update_password_put(
     creds: ChangePassword,
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: UserSchema = Depends(get_current_user_verified),
     db: Session = Depends(get_db),
 ):
     verify_password_change_otp(creds.otp, current_user.id)
@@ -121,7 +121,7 @@ def update_password_put(
 @router.put("/user")
 def update_user_info(
     detail: UpdateUser,
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: UserSchema = Depends(get_current_user_verified),
     db: Session = Depends(get_db),
 ):
     details = detail.model_dump()

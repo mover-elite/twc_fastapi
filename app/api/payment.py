@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Body
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user_verified
 from app.core.plan import create_plan_payment, check_payment_status
 from app.core.plan import (
     complete_payment as complete_payment_func,
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/payment", tags=["Payment", "Plan"])
 def create_new_user_plan(
     amount: int,
     duration: int,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_verified),
 ):
     plan = create_plan_payment(current_user.id, amount, duration)
     return plan
@@ -39,7 +39,7 @@ def cancel_payment(
     id: str = Body(),
     create_new: bool = Body(default=False),
     to_address: ChecksumAddress | None = Body(default=None),
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_user_verified),
 ):
     res = cancle_payment(id, current_user.id, to_address, create_new)
     return res

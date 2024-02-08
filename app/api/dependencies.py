@@ -12,6 +12,7 @@ from app.schemas.auth import RefreshToken
 from app.schemas.user import User as UserSchema
 from app.core.security import Jwt
 from app.crud.user import get_user_by_email
+from app.core.exceptions import Unauthenticated
 
 security = HTTPBearer()
 
@@ -69,3 +70,14 @@ def get_current_user(
     if current_user is None:
         raise credentials_exception
     return current_user
+
+
+def get_current_user_verified(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: Session = Depends(get_db),
+):
+    user = get_current_user(token, db)
+    print(user.verified)
+    if not user.verified:
+        raise Unauthenticated("Email verification required")
+    return user

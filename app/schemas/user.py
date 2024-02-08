@@ -3,9 +3,9 @@ from typing import List
 from datetime import datetime
 from app.schemas.plan import UserPlan
 from eth_utils import address as eth_address
+import re
 
-
-pwd_pattern = r"[A-Za-z0-9]*[A-Z]+[A-Za-z0-9]*[a-z]+[A-Za-z0-9]*\d+[A-Za-z0-9]*[^A-Za-z0-9]+[A-Za-z0-9]*"  # noqa
+pwd_pattern = r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$"  # noqa
 
 
 class UserLogin(BaseModel):
@@ -57,10 +57,7 @@ class BaseUser(BaseModel):
 
 
 class CreateUser(BaseUser):
-    password: str = Field(
-        min_length=8,
-        pattern=pwd_pattern,
-    )
+    password: str = Field(min_length=8)
     address: str | None = ""
 
     class Config:
@@ -75,6 +72,14 @@ class CreateUser(BaseUser):
                 "password": "password123",
             }
         }
+
+    @validator("password")
+    def validate_password(cls, value):
+        res = re.match(pwd_pattern, value)
+
+        if not res:
+            raise ValueError("Password not strong enough")
+        return value
 
 
 class UserResponse(BaseUser):
@@ -132,10 +137,14 @@ class UpdateUser(BaseModel):
 
 class ChangePassword(BaseModel):
     otp: str
-    new_password: str = Field(
-        min_length=8,
-        pattern=pwd_pattern,
-    )
+    new_password: str = Field(min_length=8)
+
+    @validator("new_password")
+    def validate_password(cls, value):
+        res = re.match(pwd_pattern, value)
+        if not res:
+            raise ValueError("Password not strong enough")
+        return value
 
     class Config:
         json_schema_extra = {
